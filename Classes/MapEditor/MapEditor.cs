@@ -1,11 +1,11 @@
 ﻿using Edda;
 using Edda.Classes.MapEditorNS;
+using Edda.Classes.MapEditorNS.EditManager;
 using Edda.Classes.MapEditorNS.NoteNS;
 using Edda.Classes.MapEditorNS.Stats;
 using Edda.Const;
 using Newtonsoft.Json.Linq;
 using RagnaRuneString;
-using Edda.Classes.MapEditorNS.EditManager;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -371,7 +371,7 @@ public class MapEditor : IDisposable {
         parent.RefreshDiscordPresence();
         RecalculateMapStats();
     }
-    
+
     public void UpdateNotes(IEnumerable<Note> newNotes, IEnumerable<Note> oldNotes, bool updateHistory, bool isMove) {
         currentMapDifficulty?.MarkDirty();
 
