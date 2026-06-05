@@ -904,11 +904,24 @@
                 </Grid.ColumnDefinitions>
                 <Border x:Name="borderSpectrogram" Grid.Column="0" BorderBrush="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" BorderThickness="0 0 1 0">
                     <Grid>
-                        <ScrollViewer x:Name="scrollSpectrogram" VerticalScrollBarVisibility="Hidden" CanContentScroll="False" ScrollChanged="ScrollSpectrogram_ScrollChanged" PreviewMouseWheel="ScrollSpectrogram_PreviewMouseWheel">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="colSpectrogramPrimary" Width="*"/>
+                            <ColumnDefinition x:Name="colSpectrogramMirror" Width="0"/>
+                        </Grid.ColumnDefinitions>
+                        <ScrollViewer x:Name="scrollSpectrogram" Grid.Column="0" VerticalScrollBarVisibility="Hidden" CanContentScroll="False" ScrollChanged="ScrollSpectrogram_ScrollChanged" PreviewMouseWheel="ScrollSpectrogram_PreviewMouseWheel">
                             <StackPanel x:Name="panelSpectrogram" Height="{Binding ElementName=EditorGrid, Path=ActualHeight}">
                                 <!-- This is built dynamically to allow chunk-loading -->
                             </StackPanel>
                         </ScrollViewer>
+                        <Rectangle x:Name="rectSpectrogramMirror" Grid.Column="1" Visibility="Collapsed" IsHitTestVisible="False">
+                            <Rectangle.Fill>
+                                <VisualBrush Visual="{Binding ElementName=scrollSpectrogram}" Stretch="Fill">
+                                    <VisualBrush.RelativeTransform>
+                                        <ScaleTransform ScaleX="-1" ScaleY="1" CenterX="0.5" CenterY="0.5"/>
+                                    </VisualBrush.RelativeTransform>
+                                </VisualBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
                     </Grid>
                 </Border>
                 <GridSplitter x:Name="spectrogramResize" Grid.Column="1" ResizeBehavior="PreviousAndCurrent" HorizontalAlignment="Left" VerticalAlignment="Stretch" ShowsPreview="False" Width="3" DragDelta="SpectrogramResize_DragDelta" DragCompleted="SpectrogramResize_DragCompleted"/>

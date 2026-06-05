@@ -50,11 +50,9 @@ namespace Edda.Windows {
             RefreshHistory();
         }
 
-        private void ClearHistoryButton_Click(object sender, RoutedEventArgs e)
-        {
+        private void ClearHistoryButton_Click(object sender, RoutedEventArgs e) {
             var history = mapEditor?.currentMapDifficulty?.editorHistory;
-            if (history != null)
-            {
+            if (history != null) {
                 history.Clear();
                 RefreshHistory();
             }
@@ -90,56 +88,56 @@ namespace Edda.Windows {
             int maxSummary = 5;
             for (int idx = count - 1; idx >= 0; idx--) {
                 var editList = allEdits[idx];
-                    string actionType = "";
-                    List<string> drums = new List<string>();
-                    List<string> beats = new List<string>();
-                    List<string> timestamps = new List<string>();
-                    List<string> details = new List<string>();
-                    bool isMoveAction = false;
-                    List<string> moveDrums = new List<string>();
-                    List<string> moveBeats = new List<string>();
-                    List<string> moveTimestamps = new List<string>();
-                    foreach (var edit in editList.items) {
-                        if (edit.item is Edda.Classes.MapEditorNS.NoteNS.Note note) {
-                            if (edit.isMove) {
-                                isMoveAction = true;
-                                actionType = "Move";
-                                moveDrums.Add(note.col switch { 0 => "D1", 1 => "D2", 2 => "D3", 3 => "D4", _ => $"D{note.col + 1}" });
-                                moveBeats.Add(note.beat.ToString("0.###"));
-                                double bpm = mapEditor?.GlobalBPM ?? 120.0;
-                                double timestampMs = note.beat * 60000.0 / bpm;
-                                int minutes = (int)(timestampMs / 60000);
-                                int seconds = (int)((timestampMs % 60000) / 1000);
-                                int millis = (int)(timestampMs % 1000);
-                                moveTimestamps.Add($"{minutes}:{seconds:D2}.{millis:D3}");
-                            } else {
-                                drums.Add(note.col switch { 0 => "D1", 1 => "D2", 2 => "D3", 3 => "D4", _ => $"D{note.col + 1}" });
-                                beats.Add(note.beat.ToString("0.###"));
-                                double bpm = mapEditor?.GlobalBPM ?? 120.0;
-                                double timestampMs = note.beat * 60000.0 / bpm;
-                                int minutes = (int)(timestampMs / 60000);
-                                int seconds = (int)((timestampMs % 60000) / 1000);
-                                int millis = (int)(timestampMs % 1000);
-                                timestamps.Add($"{minutes}:{seconds:D2}.{millis:D3}");
-                                details.Add($"{note.beat:0.###} [{note.col}] {note}");
-                                if (!isMoveAction) actionType = edit.isAdd ? "Add" : "Remove";
-                            }
+                string actionType = "";
+                List<string> drums = new List<string>();
+                List<string> beats = new List<string>();
+                List<string> timestamps = new List<string>();
+                List<string> details = new List<string>();
+                bool isMoveAction = false;
+                List<string> moveDrums = new List<string>();
+                List<string> moveBeats = new List<string>();
+                List<string> moveTimestamps = new List<string>();
+                foreach (var edit in editList.items) {
+                    if (edit.item is Edda.Classes.MapEditorNS.NoteNS.Note note) {
+                        if (edit.isMove) {
+                            isMoveAction = true;
+                            actionType = "Move";
+                            moveDrums.Add(note.col switch { 0 => "D1", 1 => "D2", 2 => "D3", 3 => "D4", _ => $"D{note.col + 1}" });
+                            moveBeats.Add(note.beat.ToString("0.###"));
+                            double bpm = mapEditor?.GlobalBPM ?? 120.0;
+                            double timestampMs = note.beat * 60000.0 / bpm;
+                            int minutes = (int)(timestampMs / 60000);
+                            int seconds = (int)((timestampMs % 60000) / 1000);
+                            int millis = (int)(timestampMs % 1000);
+                            moveTimestamps.Add($"{minutes}:{seconds:D2}.{millis:D3}");
                         } else {
-                            if (!isMoveAction) actionType = edit.item.ToString();
-                            details.Add(edit.item.ToString());
+                            drums.Add(note.col switch { 0 => "D1", 1 => "D2", 2 => "D3", 3 => "D4", _ => $"D{note.col + 1}" });
+                            beats.Add(note.beat.ToString("0.###"));
+                            double bpm = mapEditor?.GlobalBPM ?? 120.0;
+                            double timestampMs = note.beat * 60000.0 / bpm;
+                            int minutes = (int)(timestampMs / 60000);
+                            int seconds = (int)((timestampMs % 60000) / 1000);
+                            int millis = (int)(timestampMs % 1000);
+                            timestamps.Add($"{minutes}:{seconds:D2}.{millis:D3}");
+                            details.Add($"{note.beat:0.###} [{note.col}] {note}");
+                            if (!isMoveAction) actionType = edit.isAdd ? "Add" : "Remove";
                         }
+                    } else {
+                        if (!isMoveAction) actionType = edit.item.ToString();
+                        details.Add(edit.item.ToString());
                     }
-                    if (isMoveAction && moveDrums.Count >= 2) {
-                        drums.Clear();
-                        beats.Clear();
-                        timestamps.Clear();
-                        int moveCount = moveDrums.Count / 2;
-                        for (int i = 0; i < moveCount; i++) {
-                            drums.Add(moveDrums[i + moveCount] + " -> " + moveDrums[i]);
-                            beats.Add(moveBeats[i + moveCount] + " -> " + moveBeats[i]);
-                            timestamps.Add(moveTimestamps[i + moveCount] + " -> " + moveTimestamps[i]);
-                        }
+                }
+                if (isMoveAction && moveDrums.Count >= 2) {
+                    drums.Clear();
+                    beats.Clear();
+                    timestamps.Clear();
+                    int moveCount = moveDrums.Count / 2;
+                    for (int i = 0; i < moveCount; i++) {
+                        drums.Add(moveDrums[i + moveCount] + " -> " + moveDrums[i]);
+                        beats.Add(moveBeats[i + moveCount] + " -> " + moveBeats[i]);
+                        timestamps.Add(moveTimestamps[i + moveCount] + " -> " + moveTimestamps[i]);
                     }
+                }
                 string drumSummary = drums.Count > maxSummary
                     ? string.Join("\n", drums.GetRange(0, maxSummary)) + $"\n(+{drums.Count - maxSummary})"
                     : string.Join("\n", drums);
@@ -174,8 +172,7 @@ namespace Edda.Windows {
         }
 
         // RelayCommand helper for binding
-        public class RelayCommand : System.Windows.Input.ICommand
-        {
+        public class RelayCommand : System.Windows.Input.ICommand {
             private readonly System.Action _execute;
             public RelayCommand(System.Action execute) { _execute = execute; }
             public event System.EventHandler CanExecuteChanged { add { } remove { } }

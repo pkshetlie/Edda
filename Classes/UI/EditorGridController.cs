@@ -59,8 +59,7 @@ public class EditorGridController : IDisposable {
     Canvas canvasBookmarks;
     Canvas canvasBookmarkLabels;
     // select the specified drum column
-    public void SelectDrumColumn(int col)
-    {
+    public void SelectDrumColumn(int col) {
         if (col < 0 || col > 3 || mapEditor?.currentMapDifficulty == null)
             return;
         var notesCol = mapEditor.currentMapDifficulty.notes.Where(n => n.col == col).ToList();

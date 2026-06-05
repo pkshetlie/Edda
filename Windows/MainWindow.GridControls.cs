@@ -70,9 +70,12 @@ namespace Edda {
             if (mapIsLoaded) {
                 gridController.DrawSpectrogram();
             }
-            // Recalage visuel du bloc de mapping au centre de la fenêtre
+            if (spectrogramUnderGridLayoutEnabled) {
+                return;
+            }
+            // Visually realign the mapping block to the center of the window
             AnchorMappingCenter();
-            // Empêcher le chevauchement
+            // Prevent overlap
             ClampSpectrogramToMapping();
         }
         private void ScrollSpectrogram_ScrollChanged(object sender, ScrollChangedEventArgs e) {
@@ -82,14 +85,14 @@ namespace Edda {
         private void ScrollSpectrogram_PreviewMouseWheel(object sender, MouseWheelEventArgs e) {
 
         }
-        // Blocage du chevauchement pendant le glisser du splitter
+        // Prevent overlap during splitter drag
         private void SpectrogramResize_DragDelta(object sender, DragDeltaEventArgs e) {
-            if (!editorIsLoaded) {
+            if (!editorIsLoaded || spectrogramUnderGridLayoutEnabled) {
                 return;
             }
-            // largeur minimale de la colonne de contenu
+            // minimum width of the content column
             double minContent = gridSpectrogram.ColumnDefinitions[0].MinWidth;
-            // position du bord gauche du bloc central (repère EditorPanel)
+            // position of the left edge of the central block (EditorPanel coordinate)
             double mappingLeft = gridMapping.TransformToAncestor(EditorPanel).Transform(new Point(0, 0)).X;
             double splitterWidth = spectrogramResize.Width;
             double allowedMax = Math.Max(minContent, mappingLeft - splitterWidth);
@@ -104,11 +107,11 @@ namespace Edda {
                 gridSpectrogram.ColumnDefinitions[0].Width = new GridLength(minContent);
                 e.Handled = true;
             } else {
-                // appliquer explicitement la largeur cible
+                // apply the target width explicitly
                 gridSpectrogram.ColumnDefinitions[0].Width = new GridLength(target);
             }
 
-            // rafraîchir l’affichage et garder le centre
+            // refresh the display and keep the center
             if (mapIsLoaded) {
                 gridController.DrawSpectrogram();
             }
@@ -122,7 +125,7 @@ namespace Edda {
 
         private void PersistSpectrogramWidth() {
             try {
-                if (userSettings != null && gridSpectrogram?.ColumnDefinitions?.Count > 0) {
+                if (!spectrogramUnderGridLayoutEnabled && userSettings != null && gridSpectrogram?.ColumnDefinitions?.Count > 0) {
                     double width = gridSpectrogram.ColumnDefinitions[0].ActualWidth;
                     userSettings.SetValueForKey(UserSettingsKey.SpectrogramWidth, width);
                     userSettings.Write();
@@ -300,30 +303,30 @@ namespace Edda {
              *        If the height changes as well, this even handler will resize the width down, which triggers the event again (this time for width change) and the resulting ratio is not the same.
              * Replication steps: increase window width, drag spectrogram column as far right as possible and then reduce the window width.
              **/
-            if (editorIsLoaded) {
+            if (editorIsLoaded && !spectrogramUnderGridLayoutEnabled) {
                 var previousSpectrogramRatio = (gridSpectrogram.ActualWidth - spectrogramResize.Width) / e.PreviousSize.Width;
                 var newSpectrogramWidth = Math.Min(EditorPanel.ActualWidth, EditorPanel.MaxWidth) * previousSpectrogramRatio;
                 gridSpectrogram.ColumnDefinitions[0].Width = new GridLength(newSpectrogramWidth);
-                // Recalage au centre lors des changements de taille du panneau
+                // Center realignment during panel size changes
                 AnchorMappingCenter();
-                // Empêcher le chevauchement
+                // Prevent overlap
                 ClampSpectrogramToMapping();
             }
         }
 
-        // Maintenir visuellement le conteneur de mapping centré dans la fenêtre
+        // Visually keep the mapping container centered in the window
         private void AnchorMappingCenter() {
-            if (!editorIsLoaded) {
+            if (!editorIsLoaded || spectrogramUnderGridLayoutEnabled) {
                 return;
             }
             try {
-                // Centre horizontal de la fenêtre
+                // Horizontal center of the window
                 double windowCenterX = this.ActualWidth / 2.0;
 
-                // Centre actuel du conteneur de mapping (coordonnées relatives à la fenêtre)
+                // Current center of the mapping container (coordinates relative to the window)
                 var mappingCenter = gridMapping.TransformToAncestor(this).Transform(new Point(gridMapping.ActualWidth / 2.0, 0));
 
-                // Décalage nécessaire pour aligner les centres
+                // Offset needed to align the centers
                 double deltaX = windowCenterX - mappingCenter.X;
 
                 var tt = gridMapping.RenderTransform as TranslateTransform;
@@ -333,20 +336,20 @@ namespace Edda {
                 }
                 tt.X += deltaX;
             } catch {
-                // Ignorer silencieusement si la transformation n'est pas encore disponible
+                // Silently ignore if the transformation is not yet available
             }
         }
 
-        // Limiter le spectrogramme au bord gauche du bloc de mapping
+        // Limit the spectrogram to the left edge of the mapping block
         private void ClampSpectrogramToMapping() {
-            if (!editorIsLoaded) {
+            if (!editorIsLoaded || spectrogramUnderGridLayoutEnabled) {
                 return;
             }
             try {
-                // Bord gauche du bloc central par rapport à EditorPanel
+                // Left edge of the central block relative to EditorPanel
                 double mappingLeft = gridMapping.TransformToAncestor(EditorPanel).Transform(new Point(0, 0)).X;
                 double splitterWidth = spectrogramResize.Width;
-                double minContent = 20.0; // même MinWidth que la colonne du spectrogramme
+                double minContent = 20.0; // same MinWidth as the spectrogram column
                 double maxContent = Math.Max(minContent, mappingLeft - splitterWidth);
 
                 double currentContent = gridSpectrogram.ColumnDefinitions[0].ActualWidth;
@@ -354,7 +357,7 @@ namespace Edda {
                     gridSpectrogram.ColumnDefinitions[0].Width = new GridLength(maxContent);
                 }
             } catch {
-                // Ignorer si non prêt
+                // Silently ignore if not ready
             }
         }
     }

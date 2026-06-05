@@ -2,76 +2,76 @@
 using System.Collections.Generic;
 
 namespace Edda.Classes.MapEditorNS.EditManager {
-public class EditHistory<T> {
-    public event Action? HistoryChanged;
-    public List<EditList<T>> GetHistory() {
-        return history;
-    }
-
-    public int GetCurrentIndex() {
-        return currentIndex;
-    }
-    private int bufferSize;
-    private List<EditList<T>> history;
-    private int currentIndex; // index of the edit item after the last action
-
-    public EditHistory(int bufferSize) {
-        this.bufferSize = bufferSize;
-        this.Clear();
-    }
-    public void Add(EditList<T> edits) {
-        EditList<T> e = (EditList<T>)edits.Clone();
-        if (currentIndex == bufferSize) {
-            RemoveFirst();
+    public class EditHistory<T> {
+        public event Action? HistoryChanged;
+        public List<EditList<T>> GetHistory() {
+            return history;
         }
-        history.Insert(currentIndex, e);
-        currentIndex++;
-        // clear all of the "future" history
-        history.RemoveRange(currentIndex, history.Count - currentIndex);
-        HistoryChanged?.Invoke();
-    }
 
-    // returns the edits that need to be applied on the object being tracked
-    public EditList<T> Undo() {
-        if (currentIndex == 0) {
-            return new EditList<T>();
+        public int GetCurrentIndex() {
+            return currentIndex;
         }
-        var result = history[--currentIndex].Inverted();
-        HistoryChanged?.Invoke();
-        return result;
-    }
+        private int bufferSize;
+        private List<EditList<T>> history;
+        private int currentIndex; // index of the edit item after the last action
 
-    // returns the edits that need to be applied on the object being tracked
-    public EditList<T> Redo() {
-        if (currentIndex == history.Count) {
-            return new EditList<T>();
+        public EditHistory(int bufferSize) {
+            this.bufferSize = bufferSize;
+            this.Clear();
         }
-        var result = history[currentIndex++];
-        HistoryChanged?.Invoke();
-        return result;
-    }
-    public void Consolidate(int n) { // consolidate the last n entries into one
-        EditList<T> e = new();
-        for (int i = 0; i < n; i++) {
-            e.items.AddRange(history[currentIndex - 1].items);
+        public void Add(EditList<T> edits) {
+            EditList<T> e = (EditList<T>)edits.Clone();
+            if (currentIndex == bufferSize) {
+                RemoveFirst();
+            }
+            history.Insert(currentIndex, e);
+            currentIndex++;
+            // clear all of the "future" history
+            history.RemoveRange(currentIndex, history.Count - currentIndex);
+            HistoryChanged?.Invoke();
+        }
+
+        // returns the edits that need to be applied on the object being tracked
+        public EditList<T> Undo() {
+            if (currentIndex == 0) {
+                return new EditList<T>();
+            }
+            var result = history[--currentIndex].Inverted();
+            HistoryChanged?.Invoke();
+            return result;
+        }
+
+        // returns the edits that need to be applied on the object being tracked
+        public EditList<T> Redo() {
+            if (currentIndex == history.Count) {
+                return new EditList<T>();
+            }
+            var result = history[currentIndex++];
+            HistoryChanged?.Invoke();
+            return result;
+        }
+        public void Consolidate(int n) { // consolidate the last n entries into one
+            EditList<T> e = new();
+            for (int i = 0; i < n; i++) {
+                e.items.AddRange(history[currentIndex - 1].items);
+                currentIndex--;
+            }
+            this.Add(e);
+        }
+        public void Clear() {
+            this.history = new();
+            this.currentIndex = 0;
+        }
+        public void Print() {
+            var outStr = $"(Pos: {this.currentIndex})";
+            foreach (EditList<T> e in history) {
+                outStr += e.ToString();
+            }
+            Console.WriteLine(outStr);
+        }
+        private void RemoveFirst() {
+            history.RemoveAt(0);
             currentIndex--;
         }
-        this.Add(e);
     }
-    public void Clear() {
-        this.history = new();
-        this.currentIndex = 0;
-    }
-    public void Print() {
-        var outStr = $"(Pos: {this.currentIndex})";
-        foreach (EditList<T> e in history) {
-            outStr += e.ToString();
-        }
-        Console.WriteLine(outStr);
-    }
-    private void RemoveFirst() {
-        history.RemoveAt(0);
-        currentIndex--;
-    }
-}
 }
