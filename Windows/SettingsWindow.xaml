@@ -224,6 +224,8 @@
                             <RowDefinition Height="*" />
                             <RowDefinition Height="*" />
                             <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="140" />
@@ -296,7 +298,6 @@
                         </Border>
 
                         <StackPanel Grid.Row="8" Grid.ColumnSpan="2" Orientation="Vertical">
-                            
                             <TextBlock Padding="5 0 0 0" Margin="0 3 0 5" FontSize="10" VerticalAlignment="Center" TextWrapping="WrapWithOverflow">
                                 When this is enabled, the spectrogram loads faster after being created once. 
                             </TextBlock>
@@ -305,6 +306,25 @@
                                 remove them if you're manually exporting your map.
                             </TextBlock>
                         </StackPanel>
+
+                        <Border Grid.Row="9" Grid.Column="0">
+                            <TextBlock VerticalAlignment="Center" FontSize="10">Place Under Edit Grid</TextBlock>
+                        </Border>
+
+                        <Border Grid.Row="9" Grid.Column="1">
+                            <CheckBox x:Name="checkSpectrogramUnderGrid" Click="checkSpectrogramUnderGrid_Click" />
+                        </Border>
+
+                        <Border Grid.Row="10" Grid.Column="0">
+                            <TextBlock VerticalAlignment="Center">Overlay Opacity</TextBlock>
+                        </Border>
+
+                        <Border Grid.Row="10" Grid.Column="1">
+                            <DockPanel>
+                                <TextBlock x:Name="txtSpectrogramOpacity" DockPanel.Dock="Right" Width="40" Margin="5 0 0 0">40%</TextBlock>
+                                <Slider x:Name="sliderSpectrogramOpacity" Minimum="0" Maximum="1" TickFrequency="0.05" IsSnapToTickEnabled="False" ValueChanged="SliderSpectrogramOpacity_ValueChanged" IsMoveToPointEnabled="True" MouseLeftButtonUp="sliderSpectrogramOpacity_MouseLeftButtonUp" Thumb.DragCompleted="sliderSpectrogramOpacity_DragCompleted"/>
+                            </DockPanel>
+                        </Border>
 
                         </Grid>
                     </StackPanel>

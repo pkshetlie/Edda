@@ -208,6 +208,7 @@ namespace Edda {
         public bool ctrlKeyDown;
         bool returnToStartMenuOnClose = false;
         bool showDifficultyPrediction = false;
+        bool spectrogramUnderGridLayoutEnabled = false;
         public IDifficultyPredictor difficultyPredictor = DifficultyPredictorPKBeam.SINGLETON;
 
         DoubleAnimation songPlayAnim;            // used for animating scroll when playing a song
@@ -884,6 +885,19 @@ namespace Edda {
                 userSettings.SetValueForKey(UserSettingsKey.SpectrogramWidth, DefaultUserSettings.SpectrogramWidth);
             }
 
+            if (userSettings.GetValueForKey(UserSettingsKey.SpectrogramUnderGrid) == null) {
+                userSettings.SetValueForKey(UserSettingsKey.SpectrogramUnderGrid, DefaultUserSettings.SpectrogramUnderGrid);
+            }
+
+            try {
+                double spectrogramOpacity = double.Parse(userSettings.GetValueForKey(UserSettingsKey.SpectrogramOpacity));
+                if (spectrogramOpacity < 0.0 || spectrogramOpacity > 1.0) {
+                    throw new Exception("Spectrogram opacity out of range");
+                }
+            } catch {
+                userSettings.SetValueForKey(UserSettingsKey.SpectrogramOpacity, DefaultUserSettings.SpectrogramOpacity);
+            }
+
             if (userSettings.GetValueForKey(UserSettingsKey.DefaultMapper) == null) {
                 userSettings.SetValueForKey(UserSettingsKey.DefaultMapper, DefaultUserSettings.DefaultMapper);
             }
@@ -1085,9 +1099,16 @@ namespace Edda {
                 gridSpectrogram.Visibility = Visibility.Collapsed;
             }
 
+            spectrogramUnderGridLayoutEnabled = userSettings.GetBoolForKey(UserSettingsKey.SpectrogramUnderGrid);
+            if (!double.TryParse(userSettings.GetValueForKey(UserSettingsKey.SpectrogramOpacity), out double spectrogramOpacity)) {
+                spectrogramOpacity = DefaultUserSettings.SpectrogramOpacity;
+            }
+            borderSpectrogram.Opacity = Math.Max(0.0, Math.Min(1.0, spectrogramOpacity));
+            ApplySpectrogramLayoutMode(spectrogramUnderGridLayoutEnabled);
+
             // Apply persisted spectrogram width if available
             try {
-                if (gridSpectrogram?.ColumnDefinitions?.Count > 0) {
+                if (!spectrogramUnderGridLayoutEnabled && gridSpectrogram?.ColumnDefinitions?.Count > 0) {
                     if (double.TryParse(userSettings.GetValueForKey(UserSettingsKey.SpectrogramWidth), out double savedWidth)) {
                         double minContent = gridSpectrogram.ColumnDefinitions[0].MinWidth;
                         double widthToApply = Math.Max(minContent, savedWidth);
@@ -1161,8 +1182,66 @@ namespace Edda {
             canvasNavNotes.Visibility = anyNavNotesEnabled ? Visibility.Visible : Visibility.Hidden;
 
             // Re-anchor and clamp to ensure visual constraints after settings apply
-            AnchorMappingCenter();
-            ClampSpectrogramToMapping();
+            if (!spectrogramUnderGridLayoutEnabled) {
+                AnchorMappingCenter();
+                ClampSpectrogramToMapping();
+            }
+        }
+
+        private void ApplySpectrogramLayoutMode(bool placeUnderGrid) {
+            if (gridSpectrogram == null || gridMapping == null) {
+                return;
+            }
+
+            if (placeUnderGrid) {
+                Grid.SetColumn(gridSpectrogram, 1);
+                Grid.SetRow(gridSpectrogram, 1);
+                colSpectrogram.Width = new GridLength(0);
+                spectrogramResize.Visibility = Visibility.Collapsed;
+
+                if (gridSpectrogram.ColumnDefinitions.Count > 0) {
+                    gridSpectrogram.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+                }
+                if (gridSpectrogram.ColumnDefinitions.Count > 1) {
+                    gridSpectrogram.ColumnDefinitions[1].Width = new GridLength(0);
+                }
+
+                colSpectrogramPrimary.Width = new GridLength(1, GridUnitType.Star);
+                colSpectrogramMirror.Width = new GridLength(1, GridUnitType.Star);
+                rectSpectrogramMirror.Visibility = Visibility.Visible;
+
+                gridSpectrogram.MaxWidth = gridMapping.MaxWidth;
+                gridSpectrogram.HorizontalAlignment = HorizontalAlignment.Stretch;
+                gridSpectrogram.Margin = new Thickness(0, 0, 0, 0);
+                borderSpectrogram.BorderThickness = new Thickness(0);
+                Panel.SetZIndex(gridSpectrogram, 0);
+                Panel.SetZIndex(gridMapping, 1);
+
+                if (gridMapping.RenderTransform is TranslateTransform tt) {
+                    tt.X = 0;
+                    tt.Y = 0;
+                }
+            } else {
+                Grid.SetColumn(gridSpectrogram, 0);
+                Grid.SetRow(gridSpectrogram, 0);
+                colSpectrogram.Width = GridLength.Auto;
+                spectrogramResize.Visibility = Visibility.Visible;
+
+                if (gridSpectrogram.ColumnDefinitions.Count > 1) {
+                    gridSpectrogram.ColumnDefinitions[1].Width = new GridLength(3);
+                }
+
+                colSpectrogramPrimary.Width = new GridLength(1, GridUnitType.Star);
+                colSpectrogramMirror.Width = new GridLength(0);
+                rectSpectrogramMirror.Visibility = Visibility.Collapsed;
+
+                gridSpectrogram.MaxWidth = double.PositiveInfinity;
+                gridSpectrogram.HorizontalAlignment = HorizontalAlignment.Stretch;
+                gridSpectrogram.Margin = new Thickness(0);
+                borderSpectrogram.BorderThickness = new Thickness(0, 0, 1, 0);
+                Panel.SetZIndex(gridSpectrogram, 0);
+                Panel.SetZIndex(gridMapping, 0);
+            }
         }
 
         internal string GetUserSetting(string key) {

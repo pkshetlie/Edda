@@ -43,6 +43,12 @@ namespace Edda {
             txtSpectrogramFrequency.Text = userSettings.GetValueForKey(UserSettingsKey.SpectrogramFrequency);
             checkSpectrogramFlipped.IsChecked = userSettings.GetBoolForKey(UserSettingsKey.SpectrogramFlipped);
             checkSpectrogramChunking.IsChecked = userSettings.GetBoolForKey(UserSettingsKey.SpectrogramChunking);
+            checkSpectrogramUnderGrid.IsChecked = userSettings.GetBoolForKey(UserSettingsKey.SpectrogramUnderGrid);
+            if (!double.TryParse(userSettings.GetValueForKey(UserSettingsKey.SpectrogramOpacity), out double spectrogramOpacity)) {
+                spectrogramOpacity = DefaultUserSettings.SpectrogramOpacity;
+            }
+            sliderSpectrogramOpacity.Value = Math.Max(0.1, Math.Min(1.0, spectrogramOpacity));
+            txtSpectrogramOpacity.Text = $"{(int)Math.Round(sliderSpectrogramOpacity.Value * 100)}%";
             checkStartupUpdate.IsChecked = userSettings.GetBoolForKey(UserSettingsKey.CheckForUpdates);
             var savedMapPath = userSettings.GetValueForKey(UserSettingsKey.MapSaveLocationPath);
             txtMapSaveFolderPath.Text = string.IsNullOrEmpty(savedMapPath) ? Program.DocumentsMapFolder : savedMapPath;
@@ -292,6 +298,34 @@ namespace Edda {
         private void checkSpectrogramChunking_Click(object sender, RoutedEventArgs e) {
             bool newStatus = checkSpectrogramChunking.IsChecked ?? false;
             userSettings.SetValueForKey(UserSettingsKey.SpectrogramChunking, newStatus);
+            if (doneInit) {
+                UpdateSettings();
+            }
+        }
+
+        private void checkSpectrogramUnderGrid_Click(object sender, RoutedEventArgs e) {
+            bool newStatus = checkSpectrogramUnderGrid.IsChecked ?? false;
+            userSettings.SetValueForKey(UserSettingsKey.SpectrogramUnderGrid, newStatus);
+            if (doneInit) {
+                UpdateSettings();
+            }
+        }
+
+        private void SliderSpectrogramOpacity_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) {
+            if (txtSpectrogramOpacity != null) {
+                txtSpectrogramOpacity.Text = $"{(int)Math.Round(sliderSpectrogramOpacity.Value * 100)}%";
+            }
+        }
+
+        private void sliderSpectrogramOpacity_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) {
+            userSettings.SetValueForKey(UserSettingsKey.SpectrogramOpacity, sliderSpectrogramOpacity.Value);
+            if (doneInit) {
+                UpdateSettings();
+            }
+        }
+
+        private void sliderSpectrogramOpacity_DragCompleted(object sender, DragCompletedEventArgs e) {
+            userSettings.SetValueForKey(UserSettingsKey.SpectrogramOpacity, sliderSpectrogramOpacity.Value);
             if (doneInit) {
                 UpdateSettings();
             }

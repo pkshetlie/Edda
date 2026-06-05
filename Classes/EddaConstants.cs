@@ -43,6 +43,8 @@ namespace Edda.Const {
     public static class DefaultUserSettings {
         public const bool EnableSpectrogram = true;
         public const int SpectrogramWidth = 100; // default initial width for spectrogram column
+        public const bool SpectrogramUnderGrid = false;
+        public const double SpectrogramOpacity = 0.4;
         public const string DefaultMapper = "";
         public const int DefaultNoteSpeed = Editor.DefaultNoteSpeed;
         public const int DefaultGridSpacing = Editor.DefaultGridSpacing;
@@ -89,6 +91,8 @@ namespace Edda.Const {
     public static class UserSettingsKey {
         public const string EnableSpectrogram = "enableSpectrogram";
         public const string SpectrogramWidth = "spectrogramWidth";
+        public const string SpectrogramUnderGrid = "spectrogramUnderGrid";
+        public const string SpectrogramOpacity = "spectrogramOpacity";
         public const string DefaultMapper = "defaultMapper";
         public const string DefaultNoteSpeed = "defaultNoteSpeed";
         public const string DefaultGridSpacing = "defaultGridSpacing";
